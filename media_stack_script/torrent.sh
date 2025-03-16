@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Written by
+# Written by Andy Kukuc
 # This script sets up a media stack using Docker Compose. The stack includes Transmission, Sonarr, Radarr, and Prowlarr.
 
 # Default values
@@ -43,7 +43,7 @@ echo "Setting permissions for directories..."
 sudo chown -R "$PUID":"$PGID" "$HOST_DOWNLOADS" "$HOST_TV" "$HOST_MOVIES" "$HOST_SONARR_CONFIG" "$HOST_RADARR_CONFIG" "$HOST_TRANSMISSION_CONFIG" "$HOST_PROWLARR_CONFIG"
 sudo chmod -R 775 "$HOST_DOWNLOADS" "$HOST_TV" "$HOST_MOVIES" "$HOST_SONARR_CONFIG" "$HOST_RADARR_CONFIG" "$HOST_TRANSMISSION_CONFIG" "$HOST_PROWLARR_CONFIG"
 
-# Step 3: Generate docker-compose.yml (Only if it Doesn't Already Exist)
+# Step 3: Generate docker-compose.yml checl if it already exists first.
 if [ ! -f "$COMPOSE_FILE" ]; then
   echo "Generating docker-compose.yml file with user input..."
   cat <<EOL > $COMPOSE_FILE
