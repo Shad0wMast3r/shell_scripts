@@ -7,7 +7,16 @@
 echo "Choose deletion mode:"
 echo "  1) Move file to Trash (recoverable)"
 echo "  2) Securely delete file (overwrite data)"
-read -p "Enter your choice (1 or 2): " choice
+
+# Loop until the user enters a valid choice (1 or 2)
+while true; do
+    read -p "Enter your choice (1 or 2): " choice
+    if [[ "$choice" == "1" || "$choice" == "2" ]]; then
+        break
+    else
+        echo "Invalid choice. Please enter 1 or 2."
+    fi
+done
 
 read -p "Enter the file name to delete: " file
 
@@ -31,7 +40,4 @@ elif [ "$choice" == "2" ]; then
     else
         echo "Failed to securely delete file."
     fi
-else
-    echo "Invalid choice."
-    exit 1
 fi
