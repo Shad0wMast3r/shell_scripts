@@ -122,7 +122,7 @@ services:
       - PGID=$PGID
       - TZ=$TZ
     volumes:
-      - $HOST_DOWNLOADS:/downloads
+      - $HOST_DOWNLOADS:/data/completed
       - $HOST_SABNZBD_CONFIG:/config
     ports:
       - 8080:8080
