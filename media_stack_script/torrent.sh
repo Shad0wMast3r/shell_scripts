@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Written by Andy Kukuc
-# This script sets up a media stack using Docker Compose. The stack includes Transmission, Sonarr, Radarr, and Prowlarr.
+# This script sets up a media stack using Docker Compose. The stack includes Transmission, Sonarr, Radarr, Prowlarr, and SABnzbd.
 
 # Default values
 DEFAULT_LOCAL_NETWORK="192.168.0.0/24"
@@ -26,6 +26,7 @@ HOST_SONARR_CONFIG="/data/torrent/sonarr"
 HOST_RADARR_CONFIG="/data/torrent/radarr"
 HOST_TRANSMISSION_CONFIG="/data/torrent/config/works"
 HOST_PROWLARR_CONFIG="/data/torrent/prowlarr"
+HOST_SABNZBD_CONFIG="/data/torrent/sabnzbd"
 OPENVPN_CREDENTIALS="/data/torrent/config/openvpn-credentials.txt"
 
 # Function to Check if a Container is Running
@@ -35,15 +36,15 @@ is_container_running() {
 }
 
 # Step 1: Create Necessary Directories
-echo "Creating necessary directories for Sonarr, Radarr, Transmission, and Prowlarr..."
-mkdir -p "$HOST_DOWNLOADS" "$HOST_TV" "$HOST_MOVIES" "$HOST_SONARR_CONFIG" "$HOST_RADARR_CONFIG" "$HOST_TRANSMISSION_CONFIG" "$HOST_PROWLARR_CONFIG"
+echo "Creating necessary directories for Sonarr, Radarr, Transmission, Prowlarr, and SABnzbd..."
+mkdir -p "$HOST_DOWNLOADS" "$HOST_TV" "$HOST_MOVIES" "$HOST_SONARR_CONFIG" "$HOST_RADARR_CONFIG" "$HOST_TRANSMISSION_CONFIG" "$HOST_PROWLARR_CONFIG" "$HOST_SABNZBD_CONFIG"
 
 # Step 2: Modify Permissions for All Relevant Directories
 echo "Setting permissions for directories..."
-sudo chown -R "$PUID":"$PGID" "$HOST_DOWNLOADS" "$HOST_TV" "$HOST_MOVIES" "$HOST_SONARR_CONFIG" "$HOST_RADARR_CONFIG" "$HOST_TRANSMISSION_CONFIG" "$HOST_PROWLARR_CONFIG"
-sudo chmod -R 775 "$HOST_DOWNLOADS" "$HOST_TV" "$HOST_MOVIES" "$HOST_SONARR_CONFIG" "$HOST_RADARR_CONFIG" "$HOST_TRANSMISSION_CONFIG" "$HOST_PROWLARR_CONFIG"
+sudo chown -R "$PUID":"$PGID" "$HOST_DOWNLOADS" "$HOST_TV" "$HOST_MOVIES" "$HOST_SONARR_CONFIG" "$HOST_RADARR_CONFIG" "$HOST_TRANSMISSION_CONFIG" "$HOST_PROWLARR_CONFIG" "$HOST_SABNZBD_CONFIG"
+sudo chmod -R 775 "$HOST_DOWNLOADS" "$HOST_TV" "$HOST_MOVIES" "$HOST_SONARR_CONFIG" "$HOST_RADARR_CONFIG" "$HOST_TRANSMISSION_CONFIG" "$HOST_PROWLARR_CONFIG" "$HOST_SABNZBD_CONFIG"
 
-# Step 3: Generate docker-compose.yml checl if it already exists first.
+# Step 3: Generate docker-compose.yml file if it doesn't exist
 if [ ! -f "$COMPOSE_FILE" ]; then
   echo "Generating docker-compose.yml file with user input..."
   cat <<EOL > $COMPOSE_FILE
@@ -112,6 +113,20 @@ services:
     ports:
       - 9696:9696
     restart: unless-stopped
+
+  sabnzbd:
+    image: linuxserver/sabnzbd:latest
+    container_name: sabnzbd
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+    volumes:
+      - $HOST_DOWNLOADS:/downloads
+      - $HOST_SABNZBD_CONFIG:/config
+    ports:
+      - 8080:8080
+    restart: unless-stopped
 EOL
 else
   echo "docker-compose.yml already exists. Skipping file generation."
@@ -119,7 +134,7 @@ fi
 
 # Step 4: Deploy or Skip Already Running Containers
 echo "Deploying the media stack using Docker Compose..."
-for container in torrent sonarr radarr prowlarr; do
+for container in torrent sonarr radarr prowlarr sabnzbd; do
   if is_container_running "$container"; then
     echo "Container '$container' is already running. Skipping..."
   else
@@ -137,3 +152,4 @@ echo " - Transmission: http://<host_ip>:9091"
 echo " - Sonarr: http://<host_ip>:8989"
 echo " - Radarr: http://<host_ip>:7878"
 echo " - Prowlarr: http://<host_ip>:9696"
+echo " - SABnzbd: http://<host_ip>:8080"
