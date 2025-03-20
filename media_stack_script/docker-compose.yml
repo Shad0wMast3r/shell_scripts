@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  transmission:
+    image: haugene/transmission-openvpn
+    container_name: torrent
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - OPENVPN_PROVIDER=PIA
+      - OPENVPN_CONFIG=us_chicago
+      - OPENVPN_USERNAME=**None**
+      - OPENVPN_PASSWORD=**None**
+      - LOCAL_NETWORK=192.168.0.0/24
+      - DISABLE_PORT_UPDATER=true
+    volumes:
+      - /data/torrent/downloads:/data/completed
+      - /data/torrent/config/works:/config
+      - /data/torrent/config/openvpn-credentials.txt:/config/openvpn-credentials.txt
+    ports:
+      - 9091:9091
+    restart: unless-stopped
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=981
+      - PGID=981
+      - TZ=US/Chicago
+    volumes:
+      - /data/torrent/downloads:/data/completed
+      - /data/plex/tv_shows:/tv
+      - /data/torrent/sonarr:/config
+    ports:
+      - 8989:8989
+    restart: unless-stopped
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=981
+      - PGID=981
+      - TZ=US/Chicago
+    volumes:
+      - /data/torrent/downloads:/data/completed
+      - /data/plex/movies:/movies
+      - /data/torrent/radarr:/config
+    ports:
+      - 7878:7878
+    restart: unless-stopped
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=981
+      - PGID=981
+      - TZ=US/Chicago
+    volumes:
+      - /data/torrent/prowlarr:/config
+    ports:
+      - 9696:9696
+    restart: unless-stopped
