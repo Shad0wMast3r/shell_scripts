@@ -1,4 +1,3 @@
-
 ## Legal and Ethical Disclaimer
 
 This project and its associated tools are intended solely for personal and lawful use. The creators and contributors of this project have developed it as a personal project and do not condone or encourage any illegal or unethical activities, including but not limited to the unauthorized downloading, sharing, or distribution of copyrighted materials.
@@ -17,28 +16,28 @@ If you are unsure about the legality of your actions, consult the applicable law
 
 ## Parameters
 
-
 This section provides an overview of the key parameters used in the project. Customize it to align with your specific project needs.
 
 | Parameter                | Description                                                  | Default Value         |
 |--------------------------|--------------------------------------------------------------|-----------------------|
 | `PUID`                  | User ID for file permissions                                  | `981`                 |
-| `PGID`                  | Group ID for file permissions                                 | `981`                 |
+| `PGID`                  | Group ID for file permissions                                 | (User-specified)      |
 | `TZ`                    | Time zone configuration                                      | `US/Chicago`          |
 | `LOCAL_NETWORK`         | Local network range for the containers                       | `192.168.0.0/24`      |
-| `OPENVPN_CONFIG`        | OpenVPN configuration file                                   | `us_chicago`          |
-| `HOST_DOWNLOADS`        | Host directory for downloads                                 | `/data/torrent/downloads` |
-| `HOST_TV`               | Host directory for TV shows                                  | `/data/plex/tv_shows` |
-| `HOST_MOVIES`           | Host directory for movies                                    | `/data/plex/movies`   |
-| `HOST_SONARR_CONFIG`    | Host directory for Sonarr configuration                      | `/data/torrent/sonarr` |
-| `HOST_RADARR_CONFIG`    | Host directory for Radarr configuration                      | `/data/torrent/radarr` |
-| `HOST_TRANSMISSION_CONFIG` | Host directory for Transmission configuration              | `/data/torrent/config/works` |
-| `HOST_PROWLARR_CONFIG`  | Host directory for Prowlarr configuration                    | `/data/torrent/prowlarr` |
-| `OPENVPN_CREDENTIALS`   | Path to OpenVPN credentials file                             | `/data/torrent/config/openvpn-credentials.txt` |
+| `OPENVPN_CONFIG`        | OpenVPN configuration file                                   | (User-specified)      |
+| `HOST_DOWNLOADS`        | Host directory for downloads                                 | (User-specified)      |
+| `HOST_TV`               | Host directory for TV shows                                  | (User-specified)      |
+| `HOST_MOVIES`           | Host directory for movies                                    | (User-specified)      |
+| `HOST_SONARR_CONFIG`    | Host directory for Sonarr configuration                      | (User-specified)      |
+| `HOST_RADARR_CONFIG`    | Host directory for Radarr configuration                      | (User-specified)      |
+| `HOST_TRANSMISSION_CONFIG` | Host directory for Transmission configuration              | (User-specified)      |
+| `HOST_PROWLARR_CONFIG`  | Host directory for Prowlarr configuration                    | (User-specified)      |
+| `OPENVPN_CREDENTIALS`   | Path to OpenVPN credentials file                             | (User-specified)      |
 
 ### Notes
-- Adjust the **default values** based on your setup.
-- Make sure that directory paths are consistent with your system's structure.
+- Default values are provided only for `PUID`, `TZ`, and `LOCAL_NETWORK`.
+- All other parameters must be specified by the user during the script execution.
 - Ensure correct values for `PUID` and `PGID` to avoid permission issues.
+- Make sure that directory paths are consistent with your system's structure.
 
-Feel free to expand this table with additional parameters that are relevant to your project! Let me know if you'd like further refinement.
+Feel free to expand this table with additional parameters that are relevant to your project!
