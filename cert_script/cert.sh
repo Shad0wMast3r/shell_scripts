@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Author: Andy Kukuc
+# Script concept and guidance inspired by: https://my.f5.com/manage/s/article/K11438
 set -euo pipefail
 
 umask 077
@@ -18,6 +20,61 @@ mkdir -p "$CA_BUNDLE_DIR"
 mkdir -p "$OUTPUT_DIR"
 trap 'rm -rf "$WORKDIR"' EXIT
 ### ────────────────────────────────────────────────────────────────────────────
+
+# --- Certificate Renewal/Rotation Logic (MUST BE BEFORE ANY CERT GENERATION) ---
+echo ""
+read -rp "Do you want to renew (replace) an existing certificate? (y/n): " do_renew
+if [[ "$do_renew" =~ ^[Yy]$ ]]; then
+    echo ""
+    echo "Please specify the directory where your server certificate, key, and CSR are currently saved."
+    echo "You can use TAB for auto-completion."
+    read -e -p "Enter the full path to the cert directory (default: $OUTPUT_DIR): " USER_CERT_DIR
+    USER_CERT_DIR="${USER_CERT_DIR:-$OUTPUT_DIR}"
+
+    # Scan the directory for cert, key, and CSR files matching the app name
+    found_any=0
+    for filetype in crt key csr; do
+        for file in "$USER_CERT_DIR"/*.$filetype; do
+            # Only process if file exists (avoid literal glob if no match)
+            [[ -e "$file" ]] || continue
+            found_any=1
+            echo "Found: $file"
+            # For cert, check expiration
+            if [[ "$filetype" == "crt" ]]; then
+                exp_date=$(openssl x509 -enddate -noout -in "$file" | cut -d= -f2)
+                exp_epoch=$(date -d "$exp_date" +%s)
+                now_epoch=$(date +%s)
+                if (( exp_epoch > now_epoch )); then
+                    echo ""
+                    echo "The certificate $file is still valid (expires: $exp_date)."
+                    read -rp "Do you still want to renew (replace) this certificate? (y/n): " force_renew
+                    if [[ ! "$force_renew" =~ ^[Yy]$ ]]; then
+                        echo "Certificate renewal cancelled. Exiting."
+                        exit 0
+                    fi
+                else
+                    echo "The certificate $file has expired (expired: $exp_date). Proceeding with renewal."
+                fi
+            fi
+        done
+    done
+
+    if (( found_any == 1 )); then
+        read -rp "Do you want to renew (replace) the existing certificate and key/CSR? (y/n): " renew_cert
+        if [[ "$renew_cert" =~ ^[Yy]$ ]]; then
+            rm -f "$USER_CERT_DIR"/*.crt "$USER_CERT_DIR"/*.key "$USER_CERT_DIR"/*.csr
+            echo "Old certificate, key, and CSR removed (if present). Proceeding with renewal."
+        else
+            echo "Certificate renewal cancelled. Exiting."
+            exit 0
+        fi
+    else
+        echo "No existing certificate, key, or CSR found in $USER_CERT_DIR. Proceeding to generate a new certificate."
+    fi
+else
+    USER_CERT_DIR="$OUTPUT_DIR"
+fi
+# ------------------------------------------------------------------------------
 
 ### ─── CA CONFIGURATION ────────────────────────────────────────────────────────
 # Use the same CA for all servers! Do NOT generate a new CA for each server unless prompted below.
@@ -175,16 +232,16 @@ openssl x509 -req \
   -extfile "$WORKDIR/openssl-san.cnf" \
   -sha512
 
-# Copy server cert, key, and CSR to output directory before cleanup
-cp "$WORKDIR/${CERT_NAME}.crt" "$OUTPUT_DIR/"
-cp "$WORKDIR/${CERT_NAME}.key" "$OUTPUT_DIR/"
-cp "$WORKDIR/${CERT_NAME}.csr" "$OUTPUT_DIR/"
+# Copy server cert, key, and CSR to user-specified directory before cleanup
+cp "$WORKDIR/${CERT_NAME}.crt" "$USER_CERT_DIR/"
+cp "$WORKDIR/${CERT_NAME}.key" "$USER_CERT_DIR/"
+cp "$WORKDIR/${CERT_NAME}.csr" "$USER_CERT_DIR/"
 
 echo "✅ Certificate and key generated locally."
 
 echo ""
 echo "Server certificate, key, and CSR have been copied to:"
-echo "  $OUTPUT_DIR"
+echo "  $USER_CERT_DIR"
 echo ""
 echo "A copy remains in the temporary directory until script exit:"
 echo "  Certificate: $WORKDIR/${CERT_NAME}.crt"
@@ -210,7 +267,7 @@ echo "────────────────────────�
 
 echo ""
 echo "Please transfer the server certificate, key, and CSR from:"
-echo "  $OUTPUT_DIR"
+echo "  $USER_CERT_DIR"
 echo "to your target server or desired location."
 echo ""
 read -rp "Press ENTER after you have transferred the files to clean up the output directory..."
