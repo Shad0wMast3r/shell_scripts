@@ -4,10 +4,12 @@ set -euo pipefail
 umask 077
 
 ### ─── CONFIGURATION ──────────────────────────────────────────────────────────
-COMMON_NAME="myapp.example.com"
-CERT_NAME="myapp-$(date +%F)"
-PROFILE_NAME="clientssl_myapp"
-VIRTUAL_SERVERS=(vs_myapp_www vs_myapp_api)
+# Prompt user for the application/server name and set related variables
+read -rp "Enter the name of the application or server (e.g., myapp.example.com): " APP_NAME
+COMMON_NAME="$APP_NAME"
+CERT_NAME="${APP_NAME}-$(date +%F)"
+PROFILE_NAME="clientssl_${APP_NAME}"
+VIRTUAL_SERVERS=("vs_${APP_NAME}_www" "vs_${APP_NAME}_api")
 
 WORKDIR="$(mktemp -d)"
 CA_BUNDLE_DIR="$WORKDIR/ca_bundle"
@@ -205,3 +207,14 @@ echo "  2. On the next server, point this script's CA_CERT, CA_KEY, and CA_SERIA
 echo "  3. DO NOT generate a new CA for each server."
 echo "  4. Use this script as-is on each server, pointing to the same CA files above."
 echo "──────────────────────────────────────────────────────────────────────────────"
+
+echo ""
+echo "Please transfer the server certificate, key, and CSR from:"
+echo "  $OUTPUT_DIR"
+echo "to your target server or desired location."
+echo ""
+read -rp "Press ENTER after you have transferred the files to clean up the output directory..."
+
+# Clean up the output directory (remove the entire folder)
+rm -rf "$OUTPUT_DIR"
+echo "The entire output directory ($OUTPUT_DIR) has been removed."
